@@ -1,5 +1,5 @@
 module github.com/jayalane/go-syscalls-timeout
 
-go 1.18
+go 1.19
 
-require github.com/jayalane/go-counter v0.0.0-20220804214757-69fe041204ed
+require github.com/jayalane/go-counter v0.0.0-20221116014339-a6f7c5e3061a
