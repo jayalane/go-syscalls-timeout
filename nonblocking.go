@@ -18,6 +18,7 @@ var suffix = "timeouts"
 // big NAS that might never reply Default is 60 seconds (1 minute);
 // use ReadDirTimeout to tune this
 
+// ReadDir is a wrapper to os.ReadDir with a 1 minute timeout
 func ReadDir(name string) ([]os.DirEntry, error) {
 	var r []os.DirEntry
 	var e error
