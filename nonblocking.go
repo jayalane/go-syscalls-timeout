@@ -4,9 +4,14 @@ package timeouts
 
 import (
 	"errors"
-	count "github.com/jayalane/go-counter"
 	"os"
 	"time"
+
+	count "github.com/jayalane/go-counter"
+)
+
+const (
+	two = 2
 )
 
 var suffix = "timeouts"
@@ -18,25 +23,28 @@ var suffix = "timeouts"
 // big NAS that might never reply Default is 60 seconds (1 minute);
 // use ReadDirTimeout to tune this
 
-// ReadDir is a wrapper to os.ReadDir with a 1 minute timeout
+// ReadDir is a wrapper to os.ReadDir with a 1 minute timeout.
 func ReadDir(name string) ([]os.DirEntry, error) {
 	var r []os.DirEntry
+
 	var e error
+
 	count.TimeFuncRunSuffix("readdir", func() {
-		r, e = ReadDirTimeout(name, time.Second*60)
+		r, e = ReadDirTimeout(name, time.Minute)
 	}, suffix)
+
 	return r, e
 }
 
 // ReadDirTimeout is a ReadDir with a timeout in case you are calling
-// it on a big NAS that might never reply
+// it on a big NAS that might never reply.
 func ReadDirTimeout(name string, t time.Duration) ([]os.DirEntry, error) {
 	type res struct {
 		de  []os.DirEntry
 		err error
 	}
 	// start the ReadDir
-	resCh := make(chan res, 2)
+	resCh := make(chan res, two)
 	go func(name string) {
 		de, err := os.ReadDir(name)
 		resCh <- res{de, err}
@@ -45,34 +53,39 @@ func ReadDirTimeout(name string, t time.Duration) ([]os.DirEntry, error) {
 	select {
 	case result := <-resCh:
 		count.IncrSuffix("readdir-ok", suffix)
+
 		return result.de, result.err
 	case <-time.After(t):
 		count.IncrSuffix("readdir-timeout", suffix)
-		return nil, errors.New("Timeout on ReadDir")
+
+		return nil, errors.New("timeout on ReadDir") //nolint:err113
 	}
 }
 
 // Open is an os.Open with a timeout in case you are calling it on a
 // big NAS that might never reply Default is 60 seconds (1 minute);
-// use OpenTimeout to tune the timeout
+// use OpenTimeout to tune the timeout.
 func Open(name string) (*os.File, error) {
 	var f *os.File
+
 	var e error
+
 	count.TimeFuncRunSuffix("open", func() {
-		f, e = OpenTimeout(name, time.Second*60)
+		f, e = OpenTimeout(name, time.Minute)
 	}, suffix)
+
 	return f, e
 }
 
 // OpenTimeout is an fs.Open  with a timeout in case you are calling
-// it on a big NAS that might never reply
+// it on a big NAS that might never reply.
 func OpenTimeout(name string, t time.Duration) (*os.File, error) {
 	type res struct {
 		f   *os.File
 		err error
 	}
 	// start the Open
-	resCh := make(chan res, 2)
+	resCh := make(chan res, two)
 	go func(name string) {
 		f, err := os.Open(name)
 		resCh <- res{f, err}
@@ -81,21 +94,26 @@ func OpenTimeout(name string, t time.Duration) (*os.File, error) {
 	select {
 	case result := <-resCh:
 		count.IncrSuffix("open-ok", suffix)
+
 		return result.f, result.err
 	case <-time.After(t):
 		count.IncrSuffix("open-timeout", suffix)
-		return nil, errors.New("Timeout on Open")
+
+		return nil, errors.New("timeout on Open") //nolint:err113
 	}
 }
 
 // Lstat is an os.Lstat with a timeout. Default is 60 seconds (1 minute);
-// use LstatTimeout to tune the timeout
+// use LstatTimeout to tune the timeout.
 func Lstat(name string) (os.FileInfo, error) {
 	var fi os.FileInfo
+
 	var e error
+
 	count.TimeFuncRunSuffix("lstat", func() {
-		fi, e = LstatTimeout(name, time.Second*60)
+		fi, e = LstatTimeout(name, time.Minute)
 	}, suffix)
+
 	return fi, e
 }
 
@@ -107,7 +125,7 @@ func LstatTimeout(name string, t time.Duration) (os.FileInfo, error) {
 		err error
 	}
 	// start the Lstat
-	resCh := make(chan res, 2)
+	resCh := make(chan res, two)
 	go func(name string) {
 		fi, err := os.Lstat(name)
 		resCh <- res{fi, err}
@@ -115,9 +133,11 @@ func LstatTimeout(name string, t time.Duration) (os.FileInfo, error) {
 	select {
 	case result := <-resCh:
 		count.IncrSuffix("lstat-ok", suffix)
+
 		return result.fi, result.err
 	case <-time.After(t):
 		count.IncrSuffix("lstat-timeout", suffix)
-		return nil, errors.New("Timeout on Lstat")
+
+		return nil, errors.New("timeout on Lstat") //nolint:err113
 	}
 }
